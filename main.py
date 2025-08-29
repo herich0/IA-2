@@ -13,12 +13,20 @@ def run_experiment(dataset_name):
         path = "data/winequality-white.csv"
 
     X_train, X_test, y_train, y_test, scaler = load_wine_data(path=path)
-
-    # Criar modelo
-    learning_rate = np.random.uniform(0.001, 1.0)
+    
+    # Criar modelo com múltiplas camadas ocultas
+    # Para usar apenas uma camada oculta, a lista seria [32]
+    hidden_layers_config = [64, 32]   
+    
+    learning_rate = np.random.uniform(0.001, 0.1)
     print(f"Taxa de aprendizado selecionada: {learning_rate:.6f}")
     
-    model = MLP(input_size=X_train.shape[1], hidden_size=16, output_size=1, learning_rate=learning_rate)
+    model = MLP(
+        input_size=X_train.shape[1], 
+        hidden_layers=hidden_layers_config, 
+        output_size=1, 
+        learning_rate=learning_rate
+    )
 
     # Treinar modelo
     losses = model.train(X_train, y_train, epochs=1000)
