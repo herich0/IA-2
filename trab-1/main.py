@@ -16,10 +16,10 @@ def run_experiment(dataset_name):
     
     # Criar modelo com múltiplas camadas ocultas
     # Para usar apenas uma camada oculta, a lista seria [32]
-    hidden_layers_config = [64, 32]   
+    hidden_layers_config = [50,25] 
     
-    learning_rate = np.random.uniform(0.001, 0.1)
-    print(f"Taxa de aprendizado selecionada: {learning_rate:.6f}")
+    learning_rate = 0.01
+    print(f"Taxa de aprendizado se'lecionada: {learning_rate:.6f}")
     
     model = MLP(
         input_size=X_train.shape[1], 
