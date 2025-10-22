@@ -33,6 +33,29 @@ def cruzamento_ponto_unico(pai1, pai2):
     filho2 = Cromossomo(movimentos=filhos_movs_2)
     return filho1, filho2
 
+def cruzamento_dois_pontos(pai1, pai2):
+    filhos_movs_1 = []
+    filhos_movs_2 = []
+
+    # Cruzamento feito separadamente para cada agente (mantém estrutura [4][N])
+    for agente in range(4):
+        seq1 = pai1.movimentos[agente]
+        seq2 = pai2.movimentos[agente]
+
+        if random.random() < TAXA_CRUZAMENTO:
+            p1, p2 = sorted(random.sample(range(1, MAX_PASSOS_CROMOSSOMO - 1), 2))
+            f1 = seq1[:p1] + seq2[p1:p2] + seq1[p2:]
+            f2 = seq2[:p1] + seq1[p1:p2] + seq2[p2:]
+        else:
+            f1 = seq1[:]
+            f2 = seq2[:]
+
+        filhos_movs_1.append(f1)
+        filhos_movs_2.append(f2)
+
+    filho1 = Cromossomo(movimentos=filhos_movs_1)
+    filho2 = Cromossomo(movimentos=filhos_movs_2)
+    return filho1, filho2
 
 def mutacao(cromossomo):
     for agente in range(4):

@@ -1,28 +1,16 @@
 import random
-import copy
 from config import (
     TAMANHO_POPULACAO,
-    TAXA_MUTACAO,
-    TAXA_CRUZAMENTO,
     MAX_GERACOES,
     TAMANHO_MATRIZ,
     PONTOS_TESOUROS,
     PONTOS_INICIAIS_EQUIPE,
     FITNESS_COLETA_PESO,
-    FITNESS_DISTANCIA_PESO,
-    FITNESS_COLISAO_PENALIDADE,
-    FITNESS_REDUNDANCIA_PENALIDADE,
-    SEED,
     OBSTACULOS,
 )
-from operadores import inicializar_populacao, selecao_torneio, cruzamento_ponto_unico, mutacao
+from operadores import inicializar_populacao, selecao_torneio, cruzamento_ponto_unico,cruzamento_dois_pontos, mutacao
 from cromossomo import calcular_fitness
 from analise_resultados import plotar_historico_fitness
-
-# Semente opcional
-if SEED is not None:
-    random.seed(SEED)
-
 
 def criar_mapa_printavel():
     from config import TAMANHO_MATRIZ
@@ -33,10 +21,10 @@ def criar_mapa_printavel():
         mapa[r][c] = 'X'
     for r, c in PONTOS_INICIAIS_EQUIPE:
         mapa[r][c] = 'S'
-    # print('\n--- Mapa (T=Tesouro, X=Obstáculo, S=Start) ---')
-    #for linha in mapa:
-    #    print(''.join(ch + ' ' for ch in linha))
-    #print('----------------------------------------------\n')
+    print('\n--- Mapa (T=Tesouro, X=Obstáculo, S=Start) ---')
+    for linha in mapa:
+        print(''.join(ch + ' ' for ch in linha))
+    print('----------------------------------------------\n')
 
 def mostrar_caminho(mapa, cromossomo, agentes_iniciais):
     import copy
@@ -45,21 +33,35 @@ def mostrar_caminho(mapa, cromossomo, agentes_iniciais):
 
     for i, movimentos in enumerate(cromossomo.movimentos):
         x, y = agentes_iniciais[i]
+
+        # marca a posição inicial do agente (se for célula vazia)
+        if mapa_visu[x][y] == '.':
+            mapa_visu[x][y] = simbolos[i]
+
         for mov in movimentos:
-            if mov == 'U': x -= 1
-            elif mov == 'D': x += 1
-            elif mov == 'L': y -= 1
-            elif mov == 'R': y += 1
+            # calcula nova posição proposta
+            nx, ny = x, y
+            if mov == 'U': nx -= 1
+            elif mov == 'D': nx += 1
+            elif mov == 'L': ny -= 1
+            elif mov == 'R': ny += 1
 
-            # se sair do mapa ou bater num obstáculo, para
-            if not (0 <= x < len(mapa_visu) and 0 <= y < len(mapa_visu[0])):
-                break
-            if mapa_visu[x][y] == 'X':
-                break
+            # Se o movimento for inválido (fora do mapa ou obstáculo), agente NÃO se move.
+            if not (0 <= nx < len(mapa_visu) and 0 <= ny < len(mapa_visu[0])):
+                # não atualiza x,y — apenas ignora este passo
+                continue
+            if mapa_visu[nx][ny] == 'X':
+                # não atualiza x,y — apenas ignora este passo
+                continue
 
-            # marca o caminho sempre (pode sobrepor outro número)
-            if mapa_visu[x][y] in ['.', '1', '2', '3', '4']:  
+            # movimento válido: atualiza posição do agente
+            x, y = nx, ny
+
+            # marca a célula visitada (não sobrescreve T, S nem X)
+            if mapa_visu[x][y] == '.':
                 mapa_visu[x][y] = simbolos[i]
+            # se for 'T' ou 'S' ou já marcado por outro agente, deixamos como está
+            # (se quiser que agentes sobrescrevam tesouro/start, posso alterar)
 
     print("\n--- Caminho final (1–4 = agentes) ---")
     for linha in mapa_visu:
@@ -104,7 +106,7 @@ def algoritmo_genetico_main(nome_execucao="AG Multiagente (4 agentes)"):
         while len(proxima) < TAMANHO_POPULACAO:
             p1 = selecao_torneio(populacao)
             p2 = selecao_torneio(populacao)
-            f1, f2 = cruzamento_ponto_unico(p1, p2)
+            f1, f2 = cruzamento_dois_pontos(p1, p2)
             mutacao(f1); mutacao(f2)
             proxima.extend([f1, f2])
         populacao = proxima[:TAMANHO_POPULACAO]
